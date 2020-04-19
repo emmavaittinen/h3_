@@ -89,6 +89,46 @@ Aloitin lauantai aamuna klo 9.28 tekemään tehtävää uudestaan. Olin kaikkeen
 
 Asensin xubuntu-desktopin ensiksi master-koneelle $sudo apt-get install xubuntu-desktop. Tässä meni aika kauan. Asennus alkoi 9.29 ja päättyi 9.38. State.apply-ajossa menee varmaan yhtä kauan.
 
-Sitten jotakin simppeliä asetusta säätämään. Menen tutkimaan conf-tiedostoja (joita löysin muutaman). Valitsin seuraavan: /etc/xdg/xd-xubuntu
+Sitten jotakin simppeliä asetusta säätämään. Menen tutkimaan conf-tiedostoja (joita löysin muutaman). Valitsin seuraavan: /etc/xdg/xd-xubuntu/menus/xfce-applications.menu. Sieltä muuttamaan vaikka sanan Game-> Pelit. En nyt keksinyt parempaa.
+
+Sitten /srv/salt/ kansioon tekemään desktop.sls tiedoston (kts Kuva 3 aiemmasta linkistä). Siitä näkyy moduli. Seuraavaksi takaisin sinne, missä conf-tiedosto on. $sudo cp xfce-applications.menu desktop_config. $sudo mv desktop_config /srv/salt.
+
+Sitten sudo salt '*' state.apply desktop. Laitoin sen päälle klo 9.54. Ajo loppui 9.04. Desktop asentui orjalle, mutta punaista tuli: ID: /etc/xdg/xdg-xubuntu/menus
+    Function: file.managed
+      Result: False
+     Comment: Specified target /etc/xdg/xdg-xubuntu/menus is a directory
+     Started: 07:03:50.413972
+    Duration: 7.834 ms
+     Changes:
+
+Kävin muuttamassa sen pelkäksi /menu sinne .sls tiedostoon. Uudestaan state.applyta. Tuli taas samasta kohdasta punaista: ID: menus
+    Function: file.managed
+      Result: False
+     Comment: Specified file menus is not an absolute path
+     Started: 07:06:22.059744
+    Duration: 3.735 ms
+     Changes:
+
+Nyt tajusin, mikä oli virhe. Siinä lopussa pitää olla sen itse tekstitiedoston nimi. Eli lopullinen desktop.sls (kts kuva 4 aiemmasta linkistä). Taas state.applyta. Nyt ajo onnistui vihreällä. 
+ID: /etc/xdg/xdg-xubuntu/menus/xfce-applications.menu
+    Function: file.managed
+      Result: True
+     Comment: File /etc/xdg/xdg-xubuntu/menus/xfce-applications.menu updated
+     Started: 07:09:09.532353
+    Duration: 32.502 ms
+     Changes:   
+              ----------
+              diff:
+                  ---
+                  +++
+                  @@ -78,7 +78,7 @@
+                       </Menu>
+                       <Menu>
+                  -        <Name>Games</Name>
+                  +        <Name>Pelit</Name>
+                           <Directory>xfce-games.directory</Directory>
+                           <Include>
+                               <Category>Game</Category>
 
 
+Lopuksi vielä tarkistus: menen orjakoneella paikallisesti katsomaan sitä tiedostoa. Siellä lukee sana Pelit eikä Games. En sitten tiedä, miltä graaffinen käyttöliittyymä näyttäisi. Ehkä jos jaksan kokeilen ottaa remote desktop yhteyden ja käydä katsomassa.
